@@ -41,9 +41,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const learnCard = document.getElementById('learn-card');
   const learnQuestion = document.getElementById('learn-question');
   const learnAnswer = document.getElementById('learn-answer');
-  const learnAttachments = document.getElementById('learn-attachments');
   const flipCardBtn = document.getElementById('flip-card-btn');
   const nextCardBtn = document.getElementById('next-card-btn');
+  const openAttachmentsBtn = document.getElementById('open-attachments-btn');
   
   let currentUser = '';
   let editingId = null;
@@ -51,6 +51,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Tanulási módhoz – kártyák és aktuális index
   let learningCards = [];
   let currentLearnIndex = 0;
+  // Változók a jelenlegi kártya fájl linkjeinek tárolására
+  let currentPDFLink = "";
+  let currentImageLink = "";
   
   // --- Autentikáció váltás ---
   showRegisterLink.addEventListener('click', (e) => {
@@ -80,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
       currentUser = data.username;
       authContainer.classList.add('hidden');
       appContainer.classList.remove('hidden');
-      showSection('create'); // alapértelmezett szekció a kártya létrehozása
+      showSection('create'); // alapértelmezett szekció: kártya létrehozás
     }
   });
   
@@ -119,6 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   navLearn.addEventListener('click', () => {
     showSection('learn');
+    populateLearnSubtopics();
   });
   
   function showSection(section) {
@@ -131,8 +135,6 @@ document.addEventListener('DOMContentLoaded', () => {
       manageSection.classList.remove('hidden');
     } else if (section === 'learn') {
       learnSection.classList.remove('hidden');
-      // Frissítsük a tételek dropdownját a kiválasztott tantárgy alapján
-      populateLearnSubtopics();
     }
   }
   
@@ -243,19 +245,16 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // --- Tanulási mód ---
   
-  // Amikor a tantárgy dropdown változik, frissítjük a "tétel" (subtopic) dropdownot a felhasználó flashcard-jai alapján.
+  // Amikor a tantárgy dropdown változik, frissítjük a tétel (learn-subtopic) dropdownot.
   learnSubject.addEventListener('change', populateLearnSubtopics);
   
-  // Függvény: Lekéri a kiválasztott tantárgyhoz tartozó egyedi tételeket a szervertől, majd feltölti a learn-subtopic select elemet.
   async function populateLearnSubtopics() {
     const subject = learnSubject.value;
     learnSubtopic.innerHTML = "<option value=''>Válassz tételt</option>";
     if (!subject) return;
-    // Lekérjük az adott subject flashcard-okat
     const res = await fetch(`/api/flashcards?subject=${subject}`);
     const data = await res.json();
     if (data.flashcards && data.flashcards.length > 0) {
-      // Gyűjtsük össze az egyedi subtopic értékeket
       const uniqueSubtopics = [...new Set(data.flashcards.map(fc => fc.subtopic))];
       uniqueSubtopics.forEach(sub => {
         const opt = document.createElement('option');
@@ -277,13 +276,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const res = await fetch(`/api/flashcards?subject=${subject}&subtopic=${subtopic}`);
     const data = await res.json();
     if (data.flashcards && data.flashcards.length > 0) {
-      // Véletlenszerű sorrend
       learningCards = data.flashcards.sort(() => Math.random() - 0.5);
       currentLearnIndex = 0;
       showLearningCard();
       learnCardContainer.classList.remove('hidden');
       nextCardBtn.classList.add('hidden');
-      // Állítsuk vissza a lapfordítás állapotát
+      // Győződjünk meg róla, hogy a card nem fordult meg
       const cardInner = document.querySelector('.card-inner');
       if (cardInner) cardInner.classList.remove('flipped');
     } else {
@@ -291,38 +289,28 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
   
+  // Globális változók a jelenlegi kártya fájljainak tárolására
+  let currentPDFLink = "";
+  let currentImageLink = "";
+  
   function showLearningCard() {
     if (currentLearnIndex < learningCards.length) {
       const card = learningCards[currentLearnIndex];
       learnQuestion.textContent = card.question;
       learnAnswer.textContent = card.answer;
-      learnAttachments.innerHTML = "";
-      if (card.pdf) {
-        const pdfLink = document.createElement('a');
-        pdfLink.href = card.pdf;
-        pdfLink.textContent = "PDF megnyitása";
-        pdfLink.target = "_blank";
-        learnAttachments.appendChild(pdfLink);
-      }
-      if (card.image) {
-        const imgLink = document.createElement('a');
-        imgLink.href = card.image;
-        imgLink.textContent = "Kép megtekintése";
-        imgLink.target = "_blank";
-        const br = document.createElement('br');
-        learnAttachments.appendChild(br);
-        learnAttachments.appendChild(imgLink);
-      }
+      // Tároljuk el az aktuális kártya fájl linkjeit
+      currentPDFLink = card.pdf || "";
+      currentImageLink = card.image || "";
     } else {
       alert("Nincsenek több kártya.");
       learnCardContainer.classList.add('hidden');
     }
   }
   
+  // Megfordító gomb
   flipCardBtn.addEventListener('click', () => {
     const cardInner = document.querySelector('.card-inner');
     cardInner.classList.toggle('flipped');
-    // Ha megfordítottuk, jelenjen meg a "Következő kártya" gomb késleltetéssel
     if (cardInner.classList.contains('flipped')) {
       setTimeout(() => {
         nextCardBtn.classList.remove('hidden');
@@ -332,11 +320,32 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
   
+  // Következő kártya gomb
   nextCardBtn.addEventListener('click', () => {
     const cardInner = document.querySelector('.card-inner');
     cardInner.classList.remove('flipped');
     nextCardBtn.classList.add('hidden');
     currentLearnIndex++;
     showLearningCard();
+  });
+  
+  // "Fájlok Megnyitása" gomb – külön kezeljük a PDF és kép megnyitását
+  openAttachmentsBtn.addEventListener('click', () => {
+    if (currentPDFLink && currentImageLink) {
+      const choice = prompt("Melyiket szeretnéd megnyitni? Írd be: 'pdf' vagy 'kép'");
+      if (choice && choice.toLowerCase() === 'pdf') {
+        window.open(currentPDFLink, '_blank');
+      } else if (choice && (choice.toLowerCase() === 'kép' || choice.toLowerCase() === 'kep')) {
+        window.open(currentImageLink, '_blank');
+      } else {
+        alert("Érvénytelen választás.");
+      }
+    } else if (currentPDFLink) {
+      window.open(currentPDFLink, '_blank');
+    } else if (currentImageLink) {
+      window.open(currentImageLink, '_blank');
+    } else {
+      alert("Nincs elérhető fájl.");
+    }
   });
 });
