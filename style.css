@@ -4,7 +4,7 @@ body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   /* Használj egy háttérképet. Ebben a verzióban a contain értéket alkalmazzuk,
      hogy a kép alltid teljes egészében látható legyen, anélkül, hogy túlnagyítva jelenne meg. */
-  background: url('background.jpg') no-repeat center center fixed;
+  background: url('background.png') no-repeat center center fixed;
   background-size: contain;
   background-color: #f0f0f0;
   color: #333;
