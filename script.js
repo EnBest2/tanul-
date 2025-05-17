@@ -48,10 +48,10 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentUser = '';
   let editingId = null;
   
-  // Tanulási módhoz – kártyák és aktuális index
+  // Tanulási mód: kártyák és aktuális index
   let learningCards = [];
   let currentLearnIndex = 0;
-  // Változók a jelenlegi kártya fájl linkjeinek tárolására
+  // Jelenlegi kártya fájl linkjeinek tárolása
   let currentPDFLink = "";
   let currentImageLink = "";
   
@@ -245,7 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // --- Tanulási mód ---
   
-  // Amikor a tantárgy dropdown változik, frissítjük a tétel (learn-subtopic) dropdownot.
+  // A tantárgy dropdown változásakor frissítjük a tétel (learn-subtopic) dropdownot
   learnSubject.addEventListener('change', populateLearnSubtopics);
   
   async function populateLearnSubtopics() {
@@ -281,7 +281,6 @@ document.addEventListener('DOMContentLoaded', () => {
       showLearningCard();
       learnCardContainer.classList.remove('hidden');
       nextCardBtn.classList.add('hidden');
-      // Győződjünk meg róla, hogy a card nem fordult meg
       const cardInner = document.querySelector('.card-inner');
       if (cardInner) cardInner.classList.remove('flipped');
     } else {
@@ -289,16 +288,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
   
-  // Globális változók a jelenlegi kártya fájljainak tárolására
-  let currentPDFLink = "";
-  let currentImageLink = "";
-  
+  // Tároljuk az aktuális kártya fájllinkjeit
   function showLearningCard() {
     if (currentLearnIndex < learningCards.length) {
       const card = learningCards[currentLearnIndex];
       learnQuestion.textContent = card.question;
       learnAnswer.textContent = card.answer;
-      // Tároljuk el az aktuális kártya fájl linkjeit
       currentPDFLink = card.pdf || "";
       currentImageLink = card.image || "";
     } else {
@@ -320,7 +315,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
   
-  // Következő kártya gomb
+  // Következő kártya
   nextCardBtn.addEventListener('click', () => {
     const cardInner = document.querySelector('.card-inner');
     cardInner.classList.remove('flipped');
@@ -329,7 +324,7 @@ document.addEventListener('DOMContentLoaded', () => {
     showLearningCard();
   });
   
-  // "Fájlok Megnyitása" gomb – külön kezeljük a PDF és kép megnyitását
+  // Fájlok Megnyitása gomb
   openAttachmentsBtn.addEventListener('click', () => {
     if (currentPDFLink && currentImageLink) {
       const choice = prompt("Melyiket szeretnéd megnyitni? Írd be: 'pdf' vagy 'kép'");
