@@ -48,11 +48,11 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentUser = '';
   let editingId = null;
   
-  // Tanulási módhoz: kártyák tömbje és aktuális kártya indexe
+  // Tanulási módhoz – kártyák és aktuális index
   let learningCards = [];
   let currentLearnIndex = 0;
   
-  // --- Autentikáció váltása (login / regisztráció) ---
+  // --- Autentikáció váltás ---
   showRegisterLink.addEventListener('click', (e) => {
     e.preventDefault();
     loginForm.classList.add('hidden');
@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const username = document.getElementById('login-username').value.trim();
     const password = document.getElementById('login-password').value;
     const res = await fetch('/api/login', {
-      method: 'POST',
+      method: 'POST', 
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password })
     });
@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
       currentUser = data.username;
       authContainer.classList.add('hidden');
       appContainer.classList.remove('hidden');
-      showSection('create'); // alapértelmezett szekció: kártya létrehozás
+      showSection('create'); // alapértelmezett szekció a kártya létrehozása
     }
   });
   
@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const username = document.getElementById('register-username').value.trim();
     const password = document.getElementById('register-password').value;
     const res = await fetch('/api/register', {
-      method: 'POST',
+      method: 'POST', 
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password })
     });
@@ -131,6 +131,8 @@ document.addEventListener('DOMContentLoaded', () => {
       manageSection.classList.remove('hidden');
     } else if (section === 'learn') {
       learnSection.classList.remove('hidden');
+      // Frissítsük a tételek dropdownját a kiválasztott tantárgy alapján
+      populateLearnSubtopics();
     }
   }
   
@@ -239,24 +241,51 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
   
-  // Tanulási mód
+  // --- Tanulási mód ---
+  
+  // Amikor a tantárgy dropdown változik, frissítjük a "tétel" (subtopic) dropdownot a felhasználó flashcard-jai alapján.
+  learnSubject.addEventListener('change', populateLearnSubtopics);
+  
+  // Függvény: Lekéri a kiválasztott tantárgyhoz tartozó egyedi tételeket a szervertől, majd feltölti a learn-subtopic select elemet.
+  async function populateLearnSubtopics() {
+    const subject = learnSubject.value;
+    learnSubtopic.innerHTML = "<option value=''>Válassz tételt</option>";
+    if (!subject) return;
+    // Lekérjük az adott subject flashcard-okat
+    const res = await fetch(`/api/flashcards?subject=${subject}`);
+    const data = await res.json();
+    if (data.flashcards && data.flashcards.length > 0) {
+      // Gyűjtsük össze az egyedi subtopic értékeket
+      const uniqueSubtopics = [...new Set(data.flashcards.map(fc => fc.subtopic))];
+      uniqueSubtopics.forEach(sub => {
+        const opt = document.createElement('option');
+        opt.value = sub;
+        opt.textContent = sub;
+        learnSubtopic.appendChild(opt);
+      });
+    }
+  }
+  
+  // Tanulás indítása
   startLearnBtn.addEventListener('click', async () => {
     const subject = learnSubject.value;
-    const subtopic = learnSubtopic.value.trim();
+    const subtopic = learnSubtopic.value;
     if (!subject || !subtopic) {
-      alert("Töltsd ki a tantárgyat és a tételt!");
+      alert("Előbb válaszd ki a tantárgyat és a tételt!");
       return;
     }
     const res = await fetch(`/api/flashcards?subject=${subject}&subtopic=${subtopic}`);
     const data = await res.json();
     if (data.flashcards && data.flashcards.length > 0) {
-      // Keverjük meg véletlenszerű sorrendbe (Fisher-Yates algoritmus)
+      // Véletlenszerű sorrend
       learningCards = data.flashcards.sort(() => Math.random() - 0.5);
       currentLearnIndex = 0;
       showLearningCard();
       learnCardContainer.classList.remove('hidden');
       nextCardBtn.classList.add('hidden');
-      flipCard(false); // állítsuk alaphelyzetbe a flip-et
+      // Állítsuk vissza a lapfordítás állapotát
+      const cardInner = document.querySelector('.card-inner');
+      if (cardInner) cardInner.classList.remove('flipped');
     } else {
       alert("Nincsenek kártyák ebben a tételben.");
     }
@@ -280,7 +309,8 @@ document.addEventListener('DOMContentLoaded', () => {
         imgLink.href = card.image;
         imgLink.textContent = "Kép megtekintése";
         imgLink.target = "_blank";
-        learnAttachments.appendChild(document.createElement('br'));
+        const br = document.createElement('br');
+        learnAttachments.appendChild(br);
         learnAttachments.appendChild(imgLink);
       }
     } else {
@@ -290,18 +320,17 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   
   flipCardBtn.addEventListener('click', () => {
-    flipCard(true);
-  });
-  
-  function flipCard(showNext) {
     const cardInner = document.querySelector('.card-inner');
     cardInner.classList.toggle('flipped');
-    if (showNext) {
+    // Ha megfordítottuk, jelenjen meg a "Következő kártya" gomb késleltetéssel
+    if (cardInner.classList.contains('flipped')) {
       setTimeout(() => {
         nextCardBtn.classList.remove('hidden');
       }, 600);
+    } else {
+      nextCardBtn.classList.add('hidden');
     }
-  }
+  });
   
   nextCardBtn.addEventListener('click', () => {
     const cardInner = document.querySelector('.card-inner');
