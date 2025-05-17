@@ -2,7 +2,9 @@
 body {
   margin: 0;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  /* Használj egy háttérképet – helyezd el a "background.jpg"-t a projekt gyökérben */
+  background: url('background.jpg') no-repeat center center fixed;
+  background-size: cover;
   color: #333;
 }
 
@@ -216,6 +218,7 @@ body {
   transform: rotateY(180deg);
 }
 
+/* Learn controls: A "Fájlok Megnyitása" gomb az elől, majd a flip gomb */
 .learn-controls {
   margin-top: 15px;
   display: flex;
