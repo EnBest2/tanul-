@@ -2,33 +2,27 @@
 body {
   margin: 0;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  /* Használj egy háttérképet. Ebben a verzióban a contain értéket alkalmazzuk,
-     hogy a kép alltid teljes egészében látható legyen, anélkül, hogy túlnagyítva jelenne meg. */
   background: url('background.png') no-repeat center center fixed;
   background-size: contain;
-  background-color: #f0f0f0;
-  color: #333;
+  background-color: #000; /* Fekete háttér, ha nincs háttérkép */
+  color: #fff; /* Fehér szöveg, hogy kontrasztos legyen */
 }
 
 .app-header {
-  background: rgba(255,255,255,0.95);
+  background: rgba(0, 0, 0, 0.8); /* Fekete, átlátszó háttér */
   padding: 20px;
   text-align: center;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 5px rgba(255, 255, 255, 0.2);
 }
 
 /* Containers */
 .auth-container, .app-container {
-  max-width: 500px;
+  max-width: 450px;
   margin: 30px auto;
   padding: 20px;
-  background: rgba(255,255,255,0.98);
+  background: rgba(0, 0, 0, 0.6); /* Fekete, de átlátszó */
   border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-}
-
-.hidden {
-  display: none;
+  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
 }
 
 /* Form Card Styling */
@@ -38,23 +32,23 @@ body {
 }
 
 .form-card h2 {
-  margin-bottom: 20px;
-  color: #764ba2;
+  margin-bottom: 15px;
+  color: #fff;
 }
 
 .form-card input[type="text"],
 .form-card input[type="password"] {
-  width: 100%;
-  padding: 12px;
-  margin: 10px 0;
+  width: 80%; /* Kisebb input mezők */
+  padding: 8px;
+  margin: 8px 0;
   border: 1px solid #ccc;
   border-radius: 6px;
 }
 
 .form-card button {
-  width: 100%;
-  padding: 12px;
-  margin: 10px 0;
+  width: 80%;
+  padding: 10px;
+  margin: 8px 0;
   background: #667eea;
   color: #fff;
   border: none;
@@ -69,6 +63,7 @@ body {
 
 .auth-container p {
   font-size: 0.9em;
+  color: #fff;
 }
 
 /* Navigation Bar */
@@ -98,86 +93,7 @@ body {
   background: #e74c3c;
 }
 
-/* Section Styling */
-.section {
-  margin-top: 20px;
-}
-
-.input-group {
-  margin-bottom: 15px;
-}
-
-.input-group label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
-}
-
-.input-group input[type="text"],
-.input-group textarea,
-.input-group select {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-.input-group textarea {
-  resize: vertical;
-}
-
-#save-flashcard-btn, #start-learn-btn {
-  background: #27ae60;
-  color: #fff;
-  border: none;
-  padding: 12px;
-  border-radius: 6px;
-  width: 100%;
-  cursor: pointer;
-  transition: background 0.3s ease;
-}
-
-#save-flashcard-btn:hover, #start-learn-btn:hover {
-  background: #219150;
-}
-
-/* Flashcards List (Manage Section) */
-.flashcards-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.flashcard-item {
-  background: #f9f9f9;
-  border: 1px solid #ddd;
-  padding: 15px;
-  border-radius: 6px;
-}
-
-.flashcard-item p {
-  margin: 5px 0;
-}
-
-.flashcard-item button {
-  margin-right: 5px;
-  padding: 6px 10px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.flashcard-item .edit-btn {
-  background: #f39c12;
-  color: #fff;
-}
-
-.flashcard-item .delete-btn {
-  background: #e74c3c;
-  color: #fff;
-}
-
-/* Learning Mode Card */
+/* Tanulókártyák Styling */
 .learn-card-container {
   text-align: center;
   margin-top: 20px;
@@ -213,23 +129,27 @@ body {
   align-items: center;
   justify-content: center;
   padding: 15px;
-  background: #fff;
+  background: rgba(0, 0, 0, 0.7); /* Sötétebb háttér */
+  color: #fff;
 }
 
 .card-back {
   transform: rotateY(180deg);
 }
 
-/* Learn controls */
+/* Gombok új elhelyezése */
 .learn-controls {
-  margin-top: 15px;
+  margin-top: 40px; /* Sokkal lejjebb helyezve */
   display: flex;
   gap: 10px;
   justify-content: center;
+  background: rgba(0, 0, 0, 0.8); /* Egy külön sötét mezőben */
+  padding: 15px;
+  border-radius: 10px;
 }
 
 .learn-controls button {
-  padding: 10px 15px;
+  padding: 12px 18px;
   background: #667eea;
   border: none;
   color: #fff;
