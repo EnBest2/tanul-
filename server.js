@@ -8,8 +8,7 @@ const bcrypt = require('bcrypt');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Multer konfiguráció: a feltöltött fájlok a projekt gyökérében lesznek elmentve,
-// a pdf fájlok esetében "pdf_" előtaggal, a képek esetében "img_" előtaggal.
+// Multer konfiguráció: a feltöltött fájlok a projekt gyökérében lesznek elmentve.
 const upload = multer({
   storage: multer.diskStorage({
     destination: function(req, file, cb) {
@@ -26,25 +25,23 @@ const upload = multer({
 });
 
 // Middleware-ok
-app.use(express.static(__dirname)); // statikus fájlok kiszolgálása a gyökérből
+app.use(express.static(__dirname)); // statikus fájlok elérése a gyökérből
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(session({
-  secret: 'your-secret-key', // élő környezetben érdemes ENV változóból olvasni
+  secret: 'your-secret-key',
   resave: false,
   saveUninitialized: false
 }));
 
-// Adatok tárolásához használt JSON fájlok a gyökérben
+// Adatok tárolása JSON fájlokban (users.json és flashcards.json) a gyökérben
 const usersFile = path.join(__dirname, 'users.json');
 const flashcardsFile = path.join(__dirname, 'flashcards.json');
 
-// Segédfüggvények a JSON fájlok olvasásához és írásához
+// Segédfüggvények
 function readJSON(filePath) {
   try {
-    if (!fs.existsSync(filePath)) {
-      return [];
-    }
+    if (!fs.existsSync(filePath)) return [];
     const data = fs.readFileSync(filePath);
     return JSON.parse(data);
   } catch (e) {
@@ -56,14 +53,12 @@ function writeJSON(filePath, data) {
 }
 
 // -------------------------
-// FELHASZNÁLÓ AUTHENTIKÁCIÓ ENDPOINTOK
+// FELHASZNÁLÓ AUTHENTIKÁCIÓ
 // -------------------------
 
-// Regisztráció: POST /api/register
 app.post('/api/register', async (req, res) => {
   const { username, password } = req.body;
-  if (!username || !password)
-    return res.status(400).json({ error: "Missing fields" });
+  if (!username || !password) return res.status(400).json({ error: "Missing fields" });
   let users = readJSON(usersFile);
   if (users.find(u => u.username === username)) {
     return res.status(400).json({ error: "Username already taken" });
@@ -74,7 +69,6 @@ app.post('/api/register', async (req, res) => {
   res.json({ message: "Registration successful" });
 });
 
-// Bejelentkezés: POST /api/login
 app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
   let users = readJSON(usersFile);
@@ -86,13 +80,11 @@ app.post('/api/login', async (req, res) => {
   res.json({ message: "Login successful", username });
 });
 
-// Kijelentkezés: POST /api/logout
 app.post('/api/logout', (req, res) => {
   req.session.destroy();
   res.json({ message: "Logged out" });
 });
 
-// Middleware a hitelesítés ellenőrzéséhez
 function isAuthenticated(req, res, next) {
   if (req.session && req.session.user) return next();
   res.status(401).json({ error: "Not authenticated" });
@@ -102,9 +94,7 @@ function isAuthenticated(req, res, next) {
 // FLASHCARD ENDPOINTOK
 // -------------------------
 
-// Flashcard létrehozása: POST /api/flashcards
-// A kérés testjében a következő mezők szükségesek: subject, subtopic, question, answer.
-// Továbbá opcionálisan PDF és kép fájlok is feltölthetők.
+// Flashcard létrehozása
 app.post('/api/flashcards', isAuthenticated, upload.fields([
   { name: 'pdf', maxCount: 1 },
   { name: 'image', maxCount: 1 }
@@ -128,7 +118,7 @@ app.post('/api/flashcards', isAuthenticated, upload.fields([
   res.json({ message: "Flashcard created", flashcard: newFlashcard });
 });
 
-// Flashcard-ok lekérése: GET /api/flashcards?subject=...&subtopic=...
+// Flashcard-ok lekérése (szűrés subject és subtopic alapján)
 app.get('/api/flashcards', isAuthenticated, (req, res) => {
   const { subject, subtopic } = req.query;
   let flashcards = readJSON(flashcardsFile);
@@ -142,7 +132,7 @@ app.get('/api/flashcards', isAuthenticated, (req, res) => {
   res.json({ flashcards: userFlashcards });
 });
 
-// Flashcard szerkesztése: PUT /api/flashcards/:id
+// Flashcard szerkesztése
 app.put('/api/flashcards/:id', isAuthenticated, upload.fields([
   { name: 'pdf', maxCount: 1 },
   { name: 'image', maxCount: 1 }
@@ -166,7 +156,7 @@ app.put('/api/flashcards/:id', isAuthenticated, upload.fields([
   res.json({ message: "Flashcard updated", flashcard: flashcards[index] });
 });
 
-// Flashcard törlése: DELETE /api/flashcards/:id
+// Flashcard törlése
 app.delete('/api/flashcards/:id', isAuthenticated, (req, res) => {
   const flashcardId = parseInt(req.params.id);
   let flashcards = readJSON(flashcardsFile);
@@ -177,7 +167,6 @@ app.delete('/api/flashcards/:id', isAuthenticated, (req, res) => {
   res.json({ message: "Flashcard deleted", flashcard: removed[0] });
 });
 
-// A szerver 0.0.0.0-on figyel, így minden interfészen elérhető lesz (például Render-en)
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server is running on port ${PORT}`);
 });
