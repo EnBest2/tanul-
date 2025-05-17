@@ -1,24 +1,19 @@
-<!DOCTYPE html>
-<html lang="hu">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Regisztráció - Tanuló Kártya App</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <header class="app-header">
-    <h1>Tanuló Kártya App</h1>
-  </header>
-  <div class="auth-container">
-    <div class="form-card" id="register-form">
-      <h2>Regisztráció</h2>
-      <input type="text" id="register-username" placeholder="Felhasználónév">
-      <input type="password" id="register-password" placeholder="Jelszó">
-      <button id="register-btn">Regisztráció</button>
-      <p>Van már fiókod? <a href="login.html" id="show-login">Bejelentkezés</a></p>
-    </div>
-  </div>
-  <script src="script-register.js"></script>
-</body>
-</html>
+document.addEventListener('DOMContentLoaded', () => {
+  const registerBtn = document.getElementById('register-btn');
+  registerBtn.addEventListener('click', async () => {
+    const username = document.getElementById('register-username').value.trim();
+    const password = document.getElementById('register-password').value;
+    const res = await fetch('/api/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+    if (data.error) {
+      alert(data.error);
+    } else {
+      alert(data.message);
+      window.location.href = 'login.html';
+    }
+  });
+});
