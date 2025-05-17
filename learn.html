@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tanulási Mód - Tanuló Kártya App</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="app-header">
+    <h1>Tanuló Kártya App</h1>
+  </header>
+  <nav class="nav-bar">
+    <a class="nav-btn" href="create.html">Kártya Létrehozása</a>
+    <a class="nav-btn" href="manage.html">Saját Kártyák</a>
+    <a class="nav-btn" href="learn.html">Tanulási Mód</a>
+    <a class="nav-btn logout-btn" href="login.html" id="logout-btn">Kijelentkezés</a>
+  </nav>
+  <div class="app-container">
+    <section id="learn-section" class="section">
+      <h2>Tanulási Mód</h2>
+      <div class="input-group">
+        <label>Tantárgy:</label>
+        <select id="learn-subject">
+          <option value="">Válassz tantárgyat</option>
+          <option value="toroknelem">Történelem</option>
+          <option value="irodalom">Irodalom</option>
+          <option value="nyeltan">Nyelvtan</option>
+          <option value="angol">Angol</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label>Tétel:</label>
+        <select id="learn-subtopic">
+          <option value="">Válassz tételt</option>
+        </select>
+      </div>
+      <button id="start-learn-btn">Tanulás indítása</button>
+      
+      <div id="learn-card-container" class="learn-card-container hidden">
+        <div class="flashcard-card" id="learn-card">
+          <div class="card-inner">
+            <div class="card-front">
+              <p id="learn-question"></p>
+            </div>
+            <div class="card-back">
+              <p id="learn-answer"></p>
+            </div>
+          </div>
+        </div>
+        <div class="learn-controls">
+          <button id="open-attachments-btn">Fájlok Megnyitása</button>
+          <button id="flip-card-btn">Megfordítás</button>
+          <button id="next-card-btn" class="hidden">Következő kártya</button>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script src="script-learn.js"></script>
+</body>
+</html>
