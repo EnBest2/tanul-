@@ -8,76 +8,119 @@
   <!-- iOS/PWA támogatás -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <link rel="apple-touch-icon" href="icon-192.png">
   <link rel="manifest" href="manifest.json">
   
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header>
+  <header class="app-header">
     <h1>Tanuló Kártya App</h1>
   </header>
 
-  <!-- Auth felület -->
-  <div id="auth-container" class="container">
-    <div id="login-form">
+  <!-- Authentication Section -->
+  <div id="auth-container" class="auth-container">
+    <div class="form-card" id="login-form">
       <h2>Bejelentkezés</h2>
       <input type="text" id="login-username" placeholder="Felhasználónév">
       <input type="password" id="login-password" placeholder="Jelszó">
       <button id="login-btn">Bejelentkezés</button>
-      <p>Nincs fiókod? <a href="#" id="show-register">Regisztrálj itt</a></p>
+      <p>Még nincs fiókod? <a href="#" id="show-register">Regisztrálj itt</a></p>
     </div>
-    <div id="register-form" class="hidden">
+    <div class="form-card hidden" id="register-form">
       <h2>Regisztráció</h2>
       <input type="text" id="register-username" placeholder="Felhasználónév">
       <input type="password" id="register-password" placeholder="Jelszó">
       <button id="register-btn">Regisztráció</button>
-      <p>Van már fiókod? <a href="#" id="show-login">Jelentkezz be itt</a></p>
+      <p>Már van fiókod? <a href="#" id="show-login">Bejelentkezz be itt</a></p>
     </div>
   </div>
 
-  <!-- Fő alkalmazás -->
-  <div id="app-container" class="container hidden">
-    <div id="user-info">
-      <h2>Üdvözöllek, <span id="user-display"></span>!</h2>
-      <button id="logout-btn" class="logout-btn">Kijelentkezés</button>
+  <!-- Main Application Section -->
+  <div id="app-container" class="app-container hidden">
+    <div class="nav-bar">
+      <button class="nav-btn" id="nav-create">Kártya létrehozása</button>
+      <button class="nav-btn" id="nav-manage">Saját kártyák</button>
+      <button class="nav-btn" id="nav-learn">Tanulási mód</button>
+      <button class="nav-btn logout-btn" id="logout-btn">Kijelentkezés</button>
     </div>
     
-    <!-- Kategória navigáció -->
-    <div class="nav-categories">
-      <button class="category-btn" data-category="">Összes</button>
-      <button class="category-btn" data-category="toroknelem">Történelem</button>
-      <button class="category-btn" data-category="irodalom">Irodalom</button>
-      <button class="category-btn" data-category="nyeltan">Nyelvtan</button>
-      <button class="category-btn" data-category="angol">Angol</button>
-    </div>
-
-    <!-- Flashcard létrehozás és szerkesztés űrlap -->
-    <div id="flashcard-form">
-      <h3 id="flashcard-form-title">Új Tanuló Kártya</h3>
-      <!-- Rejtett mező az aktuális szerkesztett flashcard azonosítóhoz -->
-      <input type="hidden" id="editing-id" value="">
-      <select id="flashcard-category">
-        <option value="toroknelem">Történelem</option>
-        <option value="irodalom">Irodalom</option>
-        <option value="nyeltan">Nyelvtan</option>
-        <option value="angol">Angol</option>
-      </select>
-      <input type="text" id="question-input" placeholder="Kérdés">
-      <textarea id="answer-input" placeholder="Válasz"></textarea>
-      <p><strong>PDF feltöltése (opcionális):</strong></p>
-      <input type="file" id="pdf-upload" accept="application/pdf">
-      <p><strong>Kép feltöltése (opcionális):</strong></p>
-      <input type="file" id="image-upload" accept="image/*">
+    <!-- Create Flashcard Section -->
+    <section id="create-section" class="section hidden">
+      <h2>Új Tanuló Kártya létrehozása</h2>
+      <div class="input-group">
+        <label>Tantárgy:</label>
+        <select id="flashcard-subject">
+          <option value="toroknelem">Történelem</option>
+          <option value="irodalom">Irodalom</option>
+          <option value="nyeltan">Nyelvtan</option>
+          <option value="angol">Angol</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label>Tétel (pl. Hidegháború):</label>
+        <input type="text" id="flashcard-subtopic" placeholder="Add meg a tételt">
+      </div>
+      <div class="input-group">
+        <label>Kérdés:</label>
+        <input type="text" id="question-input" placeholder="Írd ide a kérdést">
+      </div>
+      <div class="input-group">
+        <label>Válasz:</label>
+        <textarea id="answer-input" placeholder="Írd ide a választ"></textarea>
+      </div>
+      <div class="input-group">
+        <label>PDF feltöltése (opcionális):</label>
+        <input type="file" id="pdf-upload" accept="application/pdf">
+      </div>
+      <div class="input-group">
+        <label>Kép feltöltése (opcionális):</label>
+        <input type="file" id="image-upload" accept="image/*">
+      </div>
       <button id="save-flashcard-btn">Kártya Mentése</button>
       <button id="cancel-edit-btn" class="hidden">Mégse</button>
-    </div>
-
-    <!-- Flashcard-ok listázása -->
-    <div id="flashcards-container">
-      <h3>Kártyák</h3>
-      <div id="flashcards-list"></div>
-    </div>
+    </section>
+    
+    <!-- Manage Flashcards Section -->
+    <section id="manage-section" class="section hidden">
+      <h2>Saját kártyák</h2>
+      <div id="flashcards-list" class="flashcards-list"></div>
+    </section>
+    
+    <!-- Learning Mode Section -->
+    <section id="learn-section" class="section hidden">
+      <h2>Tanulási mód</h2>
+      <div class="input-group">
+        <label>Tantárgy:</label>
+        <select id="learn-subject">
+          <option value="toroknelem">Történelem</option>
+          <option value="irodalom">Irodalom</option>
+          <option value="nyeltan">Nyelvtan</option>
+          <option value="angol">Angol</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label>Tétel:</label>
+        <input type="text" id="learn-subtopic" placeholder="Add meg a tételt">
+      </div>
+      <button id="start-learn-btn">Tanulás indítása</button>
+      
+      <div id="learn-card-container" class="learn-card-container hidden">
+        <div class="flashcard-card" id="learn-card">
+          <div class="card-inner">
+            <div class="card-front">
+              <p id="learn-question"></p>
+            </div>
+            <div class="card-back">
+              <p id="learn-answer"></p>
+              <div id="learn-attachments"></div>
+            </div>
+          </div>
+        </div>
+        <button id="flip-card-btn">Kártya megfordítása</button>
+        <button id="next-card-btn" class="hidden">Következő kártya</button>
+      </div>
+    </section>
+    
   </div>
 
   <script src="script.js"></script>
