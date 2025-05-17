@@ -4,20 +4,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const username = document.getElementById('register-username').value.trim();
     const password = document.getElementById('register-password').value;
     
-    // Küldjük el a regisztrációs kérést az API-nak
-    const res = await fetch('/api/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password })
-    });
-    
-    const data = await res.json();
-    
-    if (data.error) {
-      alert(data.error);
-    } else {
-      alert(data.message);
-      window.location.href = 'login.html';
+    try {
+      const res = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+
+      if (data.error) {
+        alert(data.error);
+      } else {
+        alert(data.message);
+        window.location.href = 'login.html';
+      }
+    } catch (err) {
+      alert("Hiba történt: " + err);
     }
   });
 });
