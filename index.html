@@ -37,12 +37,12 @@
 
   <!-- Main Application Section -->
   <div id="app-container" class="app-container hidden">
-    <div class="nav-bar">
+    <nav class="nav-bar">
       <button class="nav-btn" id="nav-create">Kártya létrehozása</button>
       <button class="nav-btn" id="nav-manage">Saját kártyák</button>
       <button class="nav-btn" id="nav-learn">Tanulási mód</button>
       <button class="nav-btn logout-btn" id="logout-btn">Kijelentkezés</button>
-    </div>
+    </nav>
     
     <!-- Create Flashcard Section -->
     <section id="create-section" class="section hidden">
@@ -92,6 +92,7 @@
       <div class="input-group">
         <label>Tantárgy:</label>
         <select id="learn-subject">
+          <option value="">Válassz tantárgyat</option>
           <option value="toroknelem">Történelem</option>
           <option value="irodalom">Irodalom</option>
           <option value="nyeltan">Nyelvtan</option>
@@ -100,7 +101,9 @@
       </div>
       <div class="input-group">
         <label>Tétel:</label>
-        <input type="text" id="learn-subtopic" placeholder="Add meg a tételt">
+        <select id="learn-subtopic">
+          <option value="">Előbb válaszd ki a tantárgyat</option>
+        </select>
       </div>
       <button id="start-learn-btn">Tanulás indítása</button>
       
@@ -116,8 +119,10 @@
             </div>
           </div>
         </div>
-        <button id="flip-card-btn">Kártya megfordítása</button>
-        <button id="next-card-btn" class="hidden">Következő kártya</button>
+        <div class="learn-controls">
+          <button id="flip-card-btn">Megfordítás</button>
+          <button id="next-card-btn" class="hidden">Következő kártya</button>
+        </div>
       </div>
     </section>
     
