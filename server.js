@@ -8,7 +8,8 @@ const bcrypt = require('bcrypt');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Multer konfiguráció: a feltöltött fájlok a projekt gyökérében lesznek elmentve.
+// Multer konfiguráció: A feltöltött fájlok a projekt gyökérében lesznek elmentve,
+// a PDF fájloknál "pdf_" és a képeknél "img_" előtaggal.
 const upload = multer({
   storage: multer.diskStorage({
     destination: function(req, file, cb) {
@@ -25,7 +26,7 @@ const upload = multer({
 });
 
 // Middleware-ok
-app.use(express.static(__dirname)); // statikus fájlok elérése a gyökérből
+app.use(express.static(__dirname)); // statikus fájlok a gyökérből
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(session({
@@ -34,11 +35,11 @@ app.use(session({
   saveUninitialized: false
 }));
 
-// Adatok tárolása JSON fájlokban (users.json és flashcards.json) a gyökérben
+// Adatok tárolása JSON fájlokban (users.json és flashcards.json)
 const usersFile = path.join(__dirname, 'users.json');
 const flashcardsFile = path.join(__dirname, 'flashcards.json');
 
-// Segédfüggvények
+// Segédfüggvények a JSON fájlok olvasásához és írásához
 function readJSON(filePath) {
   try {
     if (!fs.existsSync(filePath)) return [];
@@ -58,7 +59,8 @@ function writeJSON(filePath, data) {
 
 app.post('/api/register', async (req, res) => {
   const { username, password } = req.body;
-  if (!username || !password) return res.status(400).json({ error: "Missing fields" });
+  if (!username || !password)
+    return res.status(400).json({ error: "Missing fields" });
   let users = readJSON(usersFile);
   if (users.find(u => u.username === username)) {
     return res.status(400).json({ error: "Username already taken" });
