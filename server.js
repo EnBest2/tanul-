@@ -8,12 +8,26 @@ const bcrypt = require('bcrypt');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Multer konfiguráció: a feltöltött fájlok a projekt gyökérében lesznek elmentve,
-// PDF esetén "pdf_" és kép esetén "img_" előtaggal.
+// Szolgáltatjuk az összes statikus fájlt a projekt gyökéréből.
+app.use(express.static(__dirname));
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
+// Session kezelés
+app.use(session({
+  secret: 'your-secret-key',
+  resave: false,
+  saveUninitialized: false
+}));
+
+// Fájlok feltöltési mappa – itt a feltöltött PDF és képek a "uploads" almappába kerülnek.
+// Győződj meg róla, hogy létrehozod a "uploads" mappát.
 const upload = multer({
   storage: multer.diskStorage({
     destination: function(req, file, cb) {
-      cb(null, __dirname);
+      const dest = path.join(__dirname, 'uploads');
+      if (!fs.existsSync(dest)) fs.mkdirSync(dest);
+      cb(null, dest);
     },
     filename: function(req, file, cb) {
       let prefix = '';
@@ -25,24 +39,14 @@ const upload = multer({
   })
 });
 
-// Middleware-ok
-app.use(express.static(__dirname)); // statikus fájlok kiszolgálása a gyökérből
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-app.use(session({
-  secret: 'your-secret-key',
-  resave: false,
-  saveUninitialized: false
-}));
-
-// Adatok tárolása JSON fájlokban (users.json és flashcards.json)
+// Adatok tárolása JSON fájlokban (users.json, flashcards.json)
 const usersFile = path.join(__dirname, 'users.json');
 const flashcardsFile = path.join(__dirname, 'flashcards.json');
+if (!fs.existsSync(usersFile)) fs.writeFileSync(usersFile, '[]', 'utf8');
+if (!fs.existsSync(flashcardsFile)) fs.writeFileSync(flashcardsFile, '[]', 'utf8');
 
-// Segédfüggvények
 function readJSON(filePath) {
   try {
-    if (!fs.existsSync(filePath)) return [];
     const data = fs.readFileSync(filePath);
     return JSON.parse(data);
   } catch (e) {
@@ -54,13 +58,12 @@ function writeJSON(filePath, data) {
 }
 
 // -------------------------
-// FELHASZNÁLÓ AUTHENTIKÁCIÓ
+// Felhasználói Authentication API-k
 // -------------------------
 
 app.post('/api/register', async (req, res) => {
   const { username, password } = req.body;
-  if (!username || !password)
-    return res.status(400).json({ error: "Missing fields" });
+  if (!username || !password) return res.status(400).json({ error: "Missing fields" });
   let users = readJSON(usersFile);
   if (users.find(u => u.username === username)) {
     return res.status(400).json({ error: "Username already taken" });
@@ -93,10 +96,10 @@ function isAuthenticated(req, res, next) {
 }
 
 // -------------------------
-// FLASHCARD ENDPOINTOK
+// Flashcard API-k
 // -------------------------
 
-// Flashcard létrehozása
+// Létrehozás
 app.post('/api/flashcards', isAuthenticated, upload.fields([
   { name: 'pdf', maxCount: 1 },
   { name: 'image', maxCount: 1 }
@@ -112,63 +115,55 @@ app.post('/api/flashcards', isAuthenticated, upload.fields([
     subtopic,
     question,
     answer,
-    pdf: req.files && req.files.pdf ? req.files.pdf[0].filename : null,
-    image: req.files && req.files.image ? req.files.image[0].filename : null
+    pdf: req.files && req.files.pdf ? '/uploads/' + req.files.pdf[0].filename : null,
+    image: req.files && req.files.image ? '/uploads/' + req.files.image[0].filename : null
   };
   flashcards.push(newFlashcard);
   writeJSON(flashcardsFile, flashcards);
   res.json({ message: "Flashcard created", flashcard: newFlashcard });
 });
 
-// Flashcard-ok lekérése (szűrés subject és subtopic alapján)
+// Lekérés – opcionális subject és subtopic szűréssel
 app.get('/api/flashcards', isAuthenticated, (req, res) => {
   const { subject, subtopic } = req.query;
   let flashcards = readJSON(flashcardsFile);
   let userFlashcards = flashcards.filter(fc => fc.username === req.session.user.username);
-  if (subject) {
-    userFlashcards = userFlashcards.filter(fc => fc.subject === subject);
-  }
-  if (subtopic) {
-    userFlashcards = userFlashcards.filter(fc => fc.subtopic === subtopic);
-  }
+  if (subject) userFlashcards = userFlashcards.filter(fc => fc.subject === subject);
+  if (subtopic) userFlashcards = userFlashcards.filter(fc => fc.subtopic === subtopic);
   res.json({ flashcards: userFlashcards });
 });
 
-// Flashcard szerkesztése
+// Szerkesztés
 app.put('/api/flashcards/:id', isAuthenticated, upload.fields([
   { name: 'pdf', maxCount: 1 },
   { name: 'image', maxCount: 1 }
 ]), (req, res) => {
-  const flashcardId = parseInt(req.params.id);
+  const id = parseInt(req.params.id);
   let flashcards = readJSON(flashcardsFile);
-  const index = flashcards.findIndex(fc => fc.id === flashcardId && fc.username === req.session.user.username);
+  const index = flashcards.findIndex(fc => fc.id === id && fc.username === req.session.user.username);
   if (index === -1) return res.status(404).json({ error: "Flashcard not found" });
   const { subject, subtopic, question, answer } = req.body;
   if (subject) flashcards[index].subject = subject;
   if (subtopic) flashcards[index].subtopic = subtopic;
   if (question) flashcards[index].question = question;
   if (answer) flashcards[index].answer = answer;
-  if (req.files && req.files.pdf) {
-    flashcards[index].pdf = req.files.pdf[0].filename;
-  }
-  if (req.files && req.files.image) {
-    flashcards[index].image = req.files.image[0].filename;
-  }
+  if (req.files && req.files.pdf) flashcards[index].pdf = '/uploads/' + req.files.pdf[0].filename;
+  if (req.files && req.files.image) flashcards[index].image = '/uploads/' + req.files.image[0].filename;
   writeJSON(flashcardsFile, flashcards);
   res.json({ message: "Flashcard updated", flashcard: flashcards[index] });
 });
 
-// Flashcard törlése
+// Törlés
 app.delete('/api/flashcards/:id', isAuthenticated, (req, res) => {
-  const flashcardId = parseInt(req.params.id);
+  const id = parseInt(req.params.id);
   let flashcards = readJSON(flashcardsFile);
-  const index = flashcards.findIndex(fc => fc.id === flashcardId && fc.username === req.session.user.username);
+  const index = flashcards.findIndex(fc => fc.id === id && fc.username === req.session.user.username);
   if (index === -1) return res.status(404).json({ error: "Flashcard not found" });
   const removed = flashcards.splice(index, 1);
   writeJSON(flashcardsFile, flashcards);
   res.json({ message: "Flashcard deleted", flashcard: removed[0] });
 });
 
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Server is running on port ${PORT}`);
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
