@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kártya Létrehozása - Tanuló Kártya App</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="app-header">
+    <h1>Tanuló Kártya App</h1>
+  </header>
+  <nav class="nav-bar">
+    <a class="nav-btn" href="create.html">Kártya Létrehozása</a>
+    <a class="nav-btn" href="manage.html">Saját Kártyák</a>
+    <a class="nav-btn" href="learn.html">Tanulási Mód</a>
+    <a class="nav-btn logout-btn" href="login.html" id="logout-btn">Kijelentkezés</a>
+  </nav>
+  <div class="app-container">
+    <section id="create-section" class="section">
+      <h2>Új Flashcard Létrehozása</h2>
+      <div class="input-group">
+        <label>Tantárgy:</label>
+        <select id="flashcard-subject">
+          <option value="toroknelem">Történelem</option>
+          <option value="irodalom">Irodalom</option>
+          <option value="nyeltan">Nyelvtan</option>
+          <option value="angol">Angol</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label>Tétel:</label>
+        <input type="text" id="flashcard-subtopic" placeholder="Pl. Hidegháború">
+      </div>
+      <div class="input-group">
+        <label>Kérdés:</label>
+        <input type="text" id="question-input" placeholder="Írd ide a kérdést">
+      </div>
+      <div class="input-group">
+        <label>Válasz:</label>
+        <textarea id="answer-input" placeholder="Írd ide a választ"></textarea>
+      </div>
+      <div class="input-group">
+        <label>PDF Feltöltése (opcionális):</label>
+        <input type="file" id="pdf-upload" accept="application/pdf">
+      </div>
+      <div class="input-group">
+        <label>Kép Feltöltése (opcionális):</label>
+        <input type="file" id="image-upload" accept="image/*">
+      </div>
+      <button id="save-flashcard-btn">Mentés</button>
+      <button id="cancel-edit-btn" class="hidden">Mégse</button>
+    </section>
+  </div>
+  <script src="script-create.js"></script>
+</body>
+</html>
