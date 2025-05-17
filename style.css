@@ -2,12 +2,12 @@
 body {
   margin: 0;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(to right, #667eea, #764ba2);
+  background: linear-gradient(135deg, #667eea, #764ba2);
   color: #333;
 }
 
 .app-header {
-  background: rgba(255,255,255,0.9);
+  background: rgba(255,255,255,0.95);
   padding: 20px;
   text-align: center;
   box-shadow: 0 2px 5px rgba(0,0,0,0.2);
@@ -16,11 +16,11 @@ body {
 /* Containers */
 .auth-container, .app-container {
   max-width: 500px;
-  margin: 20px auto;
+  margin: 30px auto;
   padding: 20px;
-  background: rgba(255,255,255,0.95);
-  border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  background: rgba(255,255,255,0.98);
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 
 .hidden {
@@ -29,33 +29,32 @@ body {
 
 /* Form Card Styling */
 .form-card {
-  margin-bottom: 20px;
   text-align: center;
+  margin-bottom: 20px;
 }
 
 .form-card h2 {
-  margin-bottom: 15px;
+  margin-bottom: 20px;
   color: #764ba2;
 }
 
 .form-card input[type="text"],
-.form-card input[type="password"],
+.form-card input[type="password"] {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
 .form-card button {
   width: 100%;
-  padding: 10px;
-  margin: 10px auto;
-  border-radius: 5px;
-}
-
-.form-card input[type="text"],
-.form-card input[type="password"] {
-  border: 1px solid #ccc;
-}
-
-.form-card button {
+  padding: 12px;
+  margin: 10px 0;
   background: #667eea;
   color: #fff;
   border: none;
+  border-radius: 6px;
   cursor: pointer;
   transition: background 0.3s ease;
 }
@@ -73,14 +72,16 @@ body {
   display: flex;
   justify-content: space-around;
   margin-bottom: 20px;
+  gap: 10px;
 }
 
 .nav-btn {
-  padding: 10px 15px;
+  flex: 1;
+  padding: 12px;
   background: #667eea;
   border: none;
   color: #fff;
-  border-radius: 5px;
+  border-radius: 6px;
   cursor: pointer;
   transition: background 0.3s ease;
 }
@@ -112,7 +113,7 @@ body {
 .input-group textarea,
 .input-group select {
   width: 100%;
-  padding: 8px;
+  padding: 10px;
   border: 1px solid #ccc;
   border-radius: 4px;
 }
@@ -125,8 +126,8 @@ body {
   background: #27ae60;
   color: #fff;
   border: none;
-  padding: 10px;
-  border-radius: 5px;
+  padding: 12px;
+  border-radius: 6px;
   width: 100%;
   cursor: pointer;
   transition: background 0.3s ease;
@@ -146,8 +147,8 @@ body {
 .flashcard-item {
   background: #f9f9f9;
   border: 1px solid #ddd;
-  padding: 10px;
-  border-radius: 5px;
+  padding: 15px;
+  border-radius: 6px;
 }
 
 .flashcard-item p {
@@ -156,9 +157,9 @@ body {
 
 .flashcard-item button {
   margin-right: 5px;
-  padding: 5px 10px;
+  padding: 6px 10px;
   border: none;
-  border-radius: 3px;
+  border-radius: 4px;
   cursor: pointer;
 }
 
@@ -180,10 +181,9 @@ body {
 
 .flashcard-card {
   width: 300px;
-  height: 200px;
+  height: 220px;
   margin: 0 auto;
   perspective: 1000px;
-  cursor: pointer;
 }
 
 .card-inner {
@@ -204,7 +204,7 @@ body {
   height: 100%;
   backface-visibility: hidden;
   border: 1px solid #ccc;
-  border-radius: 5px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -216,25 +216,31 @@ body {
   transform: rotateY(180deg);
 }
 
-#flip-card-btn, #next-card-btn {
-  margin-top: 10px;
+.learn-controls {
+  margin-top: 15px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.learn-controls button {
   padding: 10px 15px;
   background: #667eea;
   border: none;
   color: #fff;
-  border-radius: 5px;
+  border-radius: 6px;
   cursor: pointer;
   transition: background 0.3s ease;
 }
 
-#flip-card-btn:hover, #next-card-btn:hover {
+.learn-controls button:hover {
   background: #556cd6;
 }
 
 /* Responsive Adjustments */
 @media (max-width: 600px) {
   .auth-container, .app-container {
-    margin: 10px;
+    margin: 15px;
     padding: 15px;
   }
   
