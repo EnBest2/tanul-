@@ -8,8 +8,8 @@ const bcrypt = require('bcrypt');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Multer konfiguráció: A feltöltött fájlok a projekt gyökérében lesznek elmentve,
-// a PDF fájloknál "pdf_" és a képeknél "img_" előtaggal.
+// Multer konfiguráció: a feltöltött fájlok a projekt gyökérében lesznek elmentve,
+// PDF esetén "pdf_" és kép esetén "img_" előtaggal.
 const upload = multer({
   storage: multer.diskStorage({
     destination: function(req, file, cb) {
@@ -26,7 +26,7 @@ const upload = multer({
 });
 
 // Middleware-ok
-app.use(express.static(__dirname)); // statikus fájlok a gyökérből
+app.use(express.static(__dirname)); // statikus fájlok kiszolgálása a gyökérből
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(session({
@@ -39,7 +39,7 @@ app.use(session({
 const usersFile = path.join(__dirname, 'users.json');
 const flashcardsFile = path.join(__dirname, 'flashcards.json');
 
-// Segédfüggvények a JSON fájlok olvasásához és írásához
+// Segédfüggvények
 function readJSON(filePath) {
   try {
     if (!fs.existsSync(filePath)) return [];
