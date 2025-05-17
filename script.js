@@ -1,23 +1,58 @@
 document.addEventListener('DOMContentLoaded', () => {
-  // --- Elemek lekérése ---
+  // --- Autentikációs elemek ---
   const authContainer = document.getElementById('auth-container');
   const loginForm = document.getElementById('login-form');
   const registerForm = document.getElementById('register-form');
   const showRegisterLink = document.getElementById('show-register');
   const showLoginLink = document.getElementById('show-login');
-  const appContainer = document.getElementById('app-container');
-  const userDisplay = document.getElementById('user-display');
-  
   const loginBtn = document.getElementById('login-btn');
   const registerBtn = document.getElementById('register-btn');
-  const logoutBtn = document.getElementById('logout-btn');
   
+  // --- Alkalmazás elemek ---
+  const appContainer = document.getElementById('app-container');
+  const logoutBtn = document.getElementById('logout-btn');
+  const navCreate = document.getElementById('nav-create');
+  const navManage = document.getElementById('nav-manage');
+  const navLearn = document.getElementById('nav-learn');
+  
+  // Szekciók
+  const createSection = document.getElementById('create-section');
+  const manageSection = document.getElementById('manage-section');
+  const learnSection = document.getElementById('learn-section');
+  
+  // Create flashcard elemek
+  const flashcardSubject = document.getElementById('flashcard-subject');
+  const flashcardSubtopic = document.getElementById('flashcard-subtopic');
+  const questionInput = document.getElementById('question-input');
+  const answerInput = document.getElementById('answer-input');
+  const pdfUpload = document.getElementById('pdf-upload');
+  const imageUpload = document.getElementById('image-upload');
   const saveFlashcardBtn = document.getElementById('save-flashcard-btn');
   const cancelEditBtn = document.getElementById('cancel-edit-btn');
-  const editingIdInput = document.getElementById('editing-id');
-  const flashcardFormTitle = document.getElementById('flashcard-form-title');
   
-  // Űrlap váltás
+  // Manage flashcards elemek
+  const flashcardsList = document.getElementById('flashcards-list');
+  
+  // Learning mode elemek
+  const learnSubject = document.getElementById('learn-subject');
+  const learnSubtopic = document.getElementById('learn-subtopic');
+  const startLearnBtn = document.getElementById('start-learn-btn');
+  const learnCardContainer = document.getElementById('learn-card-container');
+  const learnCard = document.getElementById('learn-card');
+  const learnQuestion = document.getElementById('learn-question');
+  const learnAnswer = document.getElementById('learn-answer');
+  const learnAttachments = document.getElementById('learn-attachments');
+  const flipCardBtn = document.getElementById('flip-card-btn');
+  const nextCardBtn = document.getElementById('next-card-btn');
+  
+  let currentUser = '';
+  let editingId = null;
+  
+  // Tanulási módhoz: kártyák tömbje és aktuális kártya indexe
+  let learningCards = [];
+  let currentLearnIndex = 0;
+  
+  // --- Autentikáció váltása (login / regisztráció) ---
   showRegisterLink.addEventListener('click', (e) => {
     e.preventDefault();
     loginForm.classList.add('hidden');
@@ -42,10 +77,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (data.error) {
       alert(data.error);
     } else {
-      userDisplay.textContent = data.username;
+      currentUser = data.username;
       authContainer.classList.add('hidden');
       appContainer.classList.remove('hidden');
-      loadFlashcards();
+      showSection('create'); // alapértelmezett szekció: kártya létrehozás
     }
   });
   
@@ -74,147 +109,205 @@ document.addEventListener('DOMContentLoaded', () => {
     location.reload();
   });
   
-  // Flashcard mentése (új vagy szerkesztett)
+  // Navigáció
+  navCreate.addEventListener('click', () => {
+    showSection('create');
+  });
+  navManage.addEventListener('click', () => {
+    showSection('manage');
+    loadFlashcards();
+  });
+  navLearn.addEventListener('click', () => {
+    showSection('learn');
+  });
+  
+  function showSection(section) {
+    createSection.classList.add('hidden');
+    manageSection.classList.add('hidden');
+    learnSection.classList.add('hidden');
+    if (section === 'create') {
+      createSection.classList.remove('hidden');
+    } else if (section === 'manage') {
+      manageSection.classList.remove('hidden');
+    } else if (section === 'learn') {
+      learnSection.classList.remove('hidden');
+    }
+  }
+  
+  // Kártya létrehozás / frissítés
   saveFlashcardBtn.addEventListener('click', async () => {
-    const category = document.getElementById('flashcard-category').value;
-    const question = document.getElementById('question-input').value.trim();
-    const answer = document.getElementById('answer-input').value.trim();
-    const pdfFile = document.getElementById('pdf-upload').files[0];
-    const imageFile = document.getElementById('image-upload').files[0];
+    const subject = flashcardSubject.value;
+    const subtopic = flashcardSubtopic.value.trim();
+    const question = questionInput.value.trim();
+    const answer = answerInput.value.trim();
     
-    if (!category || !question || !answer) {
-      alert("Kategória, kérdés és válasz kötelező!");
+    if (!subject || !subtopic || !question || !answer) {
+      alert("Minden mezőt tölts ki (a fájlok opciósak)!");
       return;
     }
     
     let formData = new FormData();
-    formData.append('category', category);
+    formData.append('subject', subject);
+    formData.append('subtopic', subtopic);
     formData.append('question', question);
     formData.append('answer', answer);
-    if (pdfFile) formData.append('pdf', pdfFile);
-    if (imageFile) formData.append('image', imageFile);
+    if (pdfUpload.files[0]) formData.append('pdf', pdfUpload.files[0]);
+    if (imageUpload.files[0]) formData.append('image', imageUpload.files[0]);
     
-    // Ellenőrzi, hogy új flashcard vagy szerkesztett flashcard
-    const editingId = editingIdInput.value;
-    let method = 'POST';
     let url = '/api/flashcards';
+    let method = 'POST';
     if (editingId) {
-      method = 'PUT';
       url += '/' + editingId;
+      method = 'PUT';
     }
-    
-    const res = await fetch(url, {
-      method,
-      body: formData
-    });
+    const res = await fetch(url, { method, body: formData });
     const data = await res.json();
     if (data.error) {
       alert(data.error);
     } else {
       alert(data.message);
-      resetFlashcardForm();
+      resetCreateForm();
       loadFlashcards();
     }
   });
   
-  // Flashcard-ok betöltése
-  async function loadFlashcards(category = '') {
-    let url = '/api/flashcards';
-    if (category) {
-      url += '?category=' + category;
-    }
-    const res = await fetch(url);
-    const result = await res.json();
-    const list = document.getElementById('flashcards-list');
-    list.innerHTML = '';
-    if (result.flashcards && result.flashcards.length > 0) {
-      result.flashcards.forEach(fc => {
+  // Szerkesztés megszakítása
+  cancelEditBtn.addEventListener('click', () => {
+    resetCreateForm();
+  });
+  
+  function resetCreateForm() {
+    editingId = null;
+    flashcardSubtopic.value = '';
+    questionInput.value = '';
+    answerInput.value = '';
+    pdfUpload.value = '';
+    imageUpload.value = '';
+    cancelEditBtn.classList.add('hidden');
+    saveFlashcardBtn.textContent = "Kártya Mentése";
+  }
+  
+  // Flashcard-ok betöltése (Manage rész)
+  async function loadFlashcards() {
+    const res = await fetch('/api/flashcards');
+    const data = await res.json();
+    flashcardsList.innerHTML = '';
+    if (data.flashcards && data.flashcards.length > 0) {
+      data.flashcards.forEach(fc => {
         const div = document.createElement('div');
-        div.className = 'flashcard';
+        div.className = 'flashcard-item';
         div.innerHTML = `
-          <p><strong>Kategória:</strong> ${fc.category}</p>
+          <p><strong>Tantárgy:</strong> ${fc.subject}</p>
+          <p><strong>Tétel:</strong> ${fc.subtopic}</p>
           <p><strong>Kérdés:</strong> ${fc.question}</p>
           <p><strong>Válasz:</strong> ${fc.answer}</p>
         `;
-        if (fc.pdf) {
-          const pdfLink = document.createElement('a');
-          pdfLink.href = fc.pdf;
-          pdfLink.download = 'flashcard.pdf';
-          pdfLink.textContent = 'PDF letöltése';
-          div.appendChild(pdfLink);
-        }
-        if (fc.image) {
-          const img = document.createElement('img');
-          img.src = fc.image;
-          img.alt = 'Feltöltött kép';
-          div.appendChild(img);
-        }
-        // Szerkesztés gomb
         const editBtn = document.createElement('button');
-        editBtn.textContent = 'Szerkesztés';
+        editBtn.textContent = "Szerkesztés";
+        editBtn.className = "edit-btn";
         editBtn.addEventListener('click', () => {
-          populateFlashcardForm(fc);
+          editingId = fc.id;
+          flashcardSubject.value = fc.subject;
+          flashcardSubtopic.value = fc.subtopic;
+          questionInput.value = fc.question;
+          answerInput.value = fc.answer;
+          saveFlashcardBtn.textContent = "Frissítés";
+          cancelEditBtn.classList.remove('hidden');
+          showSection('create');
         });
-        div.appendChild(editBtn);
-        // Törlés gomb
         const deleteBtn = document.createElement('button');
-        deleteBtn.textContent = 'Törlés';
-        deleteBtn.style.backgroundColor = '#dc3545';
+        deleteBtn.textContent = "Törlés";
+        deleteBtn.className = "delete-btn";
         deleteBtn.addEventListener('click', async () => {
-          if (confirm("Valóban törlöd a kártyát?")) {
-            const delRes = await fetch('/api/flashcards/' + fc.id, {
-              method: 'DELETE'
-            });
-            const delData = await delRes.json();
-            if (delData.error) {
-              alert(delData.error);
+          if (confirm("Biztosan törlöd a kártyát?")) {
+            const res = await fetch('/api/flashcards/' + fc.id, { method: 'DELETE' });
+            const result = await res.json();
+            if (result.error) {
+              alert(result.error);
             } else {
-              alert(delData.message);
+              alert(result.message);
               loadFlashcards();
             }
           }
         });
+        div.appendChild(editBtn);
         div.appendChild(deleteBtn);
-        list.appendChild(div);
+        flashcardsList.appendChild(div);
       });
     } else {
-      list.innerHTML = '<p>Nincs megjeleníthető kártya.</p>';
+      flashcardsList.innerHTML = "<p>Nincs megjeleníthető kártya.</p>";
     }
   }
   
-  // Kategória szűrés kezelése
-  const categoryButtons = document.querySelectorAll('.category-btn');
-  categoryButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const cat = btn.getAttribute('data-category');
-      loadFlashcards(cat);
-    });
+  // Tanulási mód
+  startLearnBtn.addEventListener('click', async () => {
+    const subject = learnSubject.value;
+    const subtopic = learnSubtopic.value.trim();
+    if (!subject || !subtopic) {
+      alert("Töltsd ki a tantárgyat és a tételt!");
+      return;
+    }
+    const res = await fetch(`/api/flashcards?subject=${subject}&subtopic=${subtopic}`);
+    const data = await res.json();
+    if (data.flashcards && data.flashcards.length > 0) {
+      // Keverjük meg véletlenszerű sorrendbe (Fisher-Yates algoritmus)
+      learningCards = data.flashcards.sort(() => Math.random() - 0.5);
+      currentLearnIndex = 0;
+      showLearningCard();
+      learnCardContainer.classList.remove('hidden');
+      nextCardBtn.classList.add('hidden');
+      flipCard(false); // állítsuk alaphelyzetbe a flip-et
+    } else {
+      alert("Nincsenek kártyák ebben a tételben.");
+    }
   });
   
-  // Flashcard űrlap szerkesztéshez: kitölti a mezőket a kiválasztott kártya adataival
-  function populateFlashcardForm(fc) {
-    editingIdInput.value = fc.id;
-    document.getElementById('flashcard-category').value = fc.category;
-    document.getElementById('question-input').value = fc.question;
-    document.getElementById('answer-input').value = fc.answer;
-    flashcardFormTitle.textContent = "Flashcard Szerkesztése";
-    cancelEditBtn.classList.remove('hidden');
+  function showLearningCard() {
+    if (currentLearnIndex < learningCards.length) {
+      const card = learningCards[currentLearnIndex];
+      learnQuestion.textContent = card.question;
+      learnAnswer.textContent = card.answer;
+      learnAttachments.innerHTML = "";
+      if (card.pdf) {
+        const pdfLink = document.createElement('a');
+        pdfLink.href = card.pdf;
+        pdfLink.textContent = "PDF megnyitása";
+        pdfLink.target = "_blank";
+        learnAttachments.appendChild(pdfLink);
+      }
+      if (card.image) {
+        const imgLink = document.createElement('a');
+        imgLink.href = card.image;
+        imgLink.textContent = "Kép megtekintése";
+        imgLink.target = "_blank";
+        learnAttachments.appendChild(document.createElement('br'));
+        learnAttachments.appendChild(imgLink);
+      }
+    } else {
+      alert("Nincsenek több kártya.");
+      learnCardContainer.classList.add('hidden');
+    }
   }
   
-  // Űrlap visszaállítása új kártya beviteléhez
-  function resetFlashcardForm() {
-    editingIdInput.value = '';
-    document.getElementById('flashcard-category').value = 'toroknelem';
-    document.getElementById('question-input').value = '';
-    document.getElementById('answer-input').value = '';
-    document.getElementById('pdf-upload').value = '';
-    document.getElementById('image-upload').value = '';
-    flashcardFormTitle.textContent = "Új Tanuló Kártya";
-    cancelEditBtn.classList.add('hidden');
+  flipCardBtn.addEventListener('click', () => {
+    flipCard(true);
+  });
+  
+  function flipCard(showNext) {
+    const cardInner = document.querySelector('.card-inner');
+    cardInner.classList.toggle('flipped');
+    if (showNext) {
+      setTimeout(() => {
+        nextCardBtn.classList.remove('hidden');
+      }, 600);
+    }
   }
   
-  // Mégse gomb az űrlapnál (szerkesztés visszavonása)
-  cancelEditBtn.addEventListener('click', () => {
-    resetFlashcardForm();
+  nextCardBtn.addEventListener('click', () => {
+    const cardInner = document.querySelector('.card-inner');
+    cardInner.classList.remove('flipped');
+    nextCardBtn.classList.add('hidden');
+    currentLearnIndex++;
+    showLearningCard();
   });
 });
