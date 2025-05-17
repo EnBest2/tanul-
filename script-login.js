@@ -12,7 +12,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (data.error) {
       alert(data.error);
     } else {
-      // Bejelentkezés után a flashcard létrehozás oldalon folytassuk (create.html)
       window.location.href = 'create.html';
     }
   });
